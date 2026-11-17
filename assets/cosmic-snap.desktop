@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Cosmic Snap
+Comment=Capture and annotate screenshots
+Exec=cosmic-snap
+Icon=cosmic-snap
+Terminal=false
+Categories=Utility;Graphics;
+Keywords=screenshot;capture;annotate;screen;
+StartupWMClass=cosmic-snap
