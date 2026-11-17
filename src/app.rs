@@ -14,7 +14,53 @@ pub(crate) enum Phase {
     Edit,
 }
 
+#[derive(Clone, Copy, PartialEq, Debug)]
+enum Handle {
+    NW, N, NE, W, E, SW, S, SE, Move,
+}
+
+impl Handle {
+    fn has_w(self) -> bool { matches!(self, Handle::NW | Handle::W | Handle::SW) }
+    fn has_e(self) -> bool { matches!(self, Handle::NE | Handle::E | Handle::SE) }
+    fn has_n(self) -> bool { matches!(self, Handle::NW | Handle::N | Handle::NE) }
+    fn has_s(self) -> bool { matches!(self, Handle::SW | Handle::S | Handle::SE) }
+    fn cursor(self) -> egui::CursorIcon {
+        match self {
+            Handle::NW | Handle::SE => egui::CursorIcon::ResizeNwSe,
+            Handle::NE | Handle::SW => egui::CursorIcon::ResizeNeSw,
+            Handle::N | Handle::S => egui::CursorIcon::ResizeVertical,
+            Handle::E | Handle::W => egui::CursorIcon::ResizeHorizontal,
+            Handle::Move => egui::CursorIcon::Grabbing,
+        }
+    }
+}
+
+/// Clamp that never panics when the range is inverted.
+fn cl(v: f32, lo: f32, hi: f32) -> f32 {
+    v.max(lo).min(hi.max(lo))
+}
+
+/// New selection after dragging `h` by `d` image pixels, kept inside the frame and at least 8px big.
+fn resized(h: Handle, start: Rect, d: Vec2, iw: f32, ih: f32) -> Rect {
+    const MIN: f32 = 8.0;
+    let (mut l, mut t, mut r, mut b) = (start.min.x, start.min.y, start.max.x, start.max.y);
+    if h == Handle::Move {
+        let (w, hh) = (r - l, b - t);
+        l = cl(l + d.x, 0.0, iw - w);
+        t = cl(t + d.y, 0.0, ih - hh);
+        r = l + w;
+        b = t + hh;
+    } else {
+        if h.has_w() { l = cl(l + d.x, 0.0, r - MIN); }
+        if h.has_e() { r = cl(r + d.x, l + MIN, iw); }
+        if h.has_n() { t = cl(t + d.y, 0.0, b - MIN); }
+        if h.has_s() { b = cl(b + d.y, t + MIN, ih); }
+    }
+    Rect::from_min_max(Pos2::new(l.round(), t.round()), Pos2::new(r.round(), b.round()))
+}
+
 pub(crate) struct App {
+    resize_drag: Option<(Handle, Rect, Pos2)>, // handle, selection at drag start, pointer at drag start (image px)
     full: RgbaImage,
     tex: egui::TextureHandle,
     base: RgbaImage,
@@ -68,6 +114,7 @@ impl App {
             status: if select { "Drag to select an area · click for full screen".into() } else { "Area selected · pick a tool".into() },
             phase: if select { Phase::Select { start: None, cur: None } } else { Phase::Edit },
             color_open: false,
+            resize_drag: None,
             help: true,
         }
     }
@@ -164,6 +211,28 @@ impl App {
         }
     }
 
+    fn set_tool(&mut self, t: Tool) {
+        self.tool = t;
+        if t == Tool::Resize {
+            self.status = "Drag a handle to resize the region · drag inside to move it".into();
+        }
+    }
+
+    /// Change the selected region. Annotations stay put on screen, so shift them into the new crop space.
+    fn set_sel(&mut self, new: Rect) {
+        let shift = self.sel.min - new.min;
+        for s in self.shapes.iter_mut().chain(self.redo.iter_mut()) {
+            s.translate(shift);
+        }
+        if let Some(d) = self.draft.as_mut() {
+            d.translate(shift);
+        }
+        let (x, y) = (new.min.x as u32, new.min.y as u32);
+        let (w, h) = (new.width() as u32, new.height() as u32);
+        self.base = image::imageops::crop_imm(&self.full, x, y, w, h).to_image();
+        self.sel = new;
+    }
+
     fn finish_select(&mut self, r: Rect) {
         let (fw, fh) = (self.full.width(), self.full.height());
         let x = (r.min.x.round() as u32).min(fw - 1);
@@ -258,7 +327,7 @@ impl App {
             Tool::Free => Shape::Free { pts: vec![p], c, w },
             Tool::Highlight => Shape::Highlight { pts: vec![p], c, w: w * 4.0 + 8.0 },
             Tool::Redact => Shape::Redact { a: p, b: p },
-            Tool::Marker | Tool::Text => return None,
+            Tool::Marker | Tool::Text | Tool::Resize => return None,
         })
     }
 
@@ -324,9 +393,9 @@ impl App {
                     for (k, t) in [
                         (egui::Key::A, Tool::Arrow), (egui::Key::R, Tool::Rect), (egui::Key::E, Tool::Ellipse),
                         (egui::Key::F, Tool::Free), (egui::Key::H, Tool::Highlight), (egui::Key::D, Tool::Redact),
-                        (egui::Key::C, Tool::Marker), (egui::Key::T, Tool::Text),
+                        (egui::Key::C, Tool::Marker), (egui::Key::T, Tool::Text), (egui::Key::V, Tool::Resize),
                     ] {
-                        if i.key_pressed(k) { self.tool = t; }
+                        if i.key_pressed(k) { self.set_tool(t); }
                     }
                     for (n, k) in [
                         egui::Key::Num1, egui::Key::Num2, egui::Key::Num3, egui::Key::Num4,
@@ -342,6 +411,7 @@ impl App {
         }
 
         // ── canvas ──
+        let mut pending_sel: Option<Rect> = None;
         egui::CentralPanel::default().frame(egui::Frame::none().fill(Color32::BLACK)).show(ctx, |ui| {
             let full_painter = ui.painter_at(fit);
             full_painter.image(self.tex.id(), fit, Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)), Color32::WHITE);
@@ -366,7 +436,7 @@ impl App {
             }
             let to_crop = |p: Pos2| Pos2::new(((p.x - sel_s.min.x) / s).clamp(0.0, cw), ((p.y - sel_s.min.y) / s).clamp(0.0, ch));
 
-            if !editing {
+            if !editing && self.tool != Tool::Resize {
                 if resp.drag_started() {
                     if let Some(p) = resp.interact_pointer_pos() {
                         self.draft = self.make_draft(to_crop(p));
@@ -407,6 +477,61 @@ impl App {
                 }
             }
 
+            // ── resize tool: 8 handles on the edges/corners, drag inside to move ──
+            if self.tool == Tool::Resize && !editing {
+                let (iw, ih) = (self.full.width() as f32, self.full.height() as f32);
+                let to_full = |p: Pos2| Pos2::new((p.x - fit.min.x) / s, (p.y - fit.min.y) / s);
+                let pts = [
+                    (Handle::NW, sel_s.left_top()), (Handle::N, sel_s.center_top()), (Handle::NE, sel_s.right_top()),
+                    (Handle::W, sel_s.left_center()), (Handle::E, sel_s.right_center()),
+                    (Handle::SW, sel_s.left_bottom()), (Handle::S, sel_s.center_bottom()), (Handle::SE, sel_s.right_bottom()),
+                ];
+                let mut started: Option<Handle> = None;
+                let mut hovered: Option<Handle> = None;
+                for (h, pt) in pts {
+                    let r = ui.interact(Rect::from_center_size(pt, Vec2::splat(20.0)), egui::Id::new(("resize-handle", h as u8)), Sense::drag());
+                    if r.hovered() { hovered = Some(h); }
+                    if r.drag_started() { started = Some(h); }
+                    ui.painter().rect_filled(Rect::from_center_size(pt, Vec2::splat(11.0)), 2.5, Color32::WHITE);
+                    ui.painter().rect_stroke(Rect::from_center_size(pt, Vec2::splat(11.0)), 2.5, Stroke::new(1.5_f32, ACCENT));
+                }
+                if started.is_none() && resp.drag_started() {
+                    started = Some(Handle::Move);
+                }
+                if let Some(h) = started {
+                    if let Some(p) = ctx.input(|i| i.pointer.interact_pos()) {
+                        self.resize_drag = Some((h, self.sel, to_full(p)));
+                    }
+                }
+                if let Some((h, start_sel, start_ptr)) = self.resize_drag {
+                    if ctx.input(|i| i.pointer.primary_down()) {
+                        if let Some(p) = ctx.input(|i| i.pointer.interact_pos()) {
+                            let new = resized(h, start_sel, to_full(p) - start_ptr, iw, ih);
+                            if new != self.sel {
+                                pending_sel = Some(new);
+                            }
+                        }
+                        ctx.set_cursor_icon(h.cursor());
+                        let label = format!("{} × {}", self.sel.width() as i32, self.sel.height() as i32);
+                        let g = ui.painter().layout_no_wrap(label, FontId::proportional(13.0), Color32::from_gray(235));
+                        let bg = Rect::from_min_size(Pos2::new(sel_s.min.x, (sel_s.min.y - 30.0).max(fit.min.y + 4.0)), g.size() + Vec2::new(16.0, 8.0));
+                        ui.painter().rect_filled(bg, 7.0, Color32::from_black_alpha(215));
+                        ui.painter().galley(bg.min + Vec2::new(8.0, 4.0), g, Color32::WHITE);
+                    } else {
+                        self.resize_drag = None;
+                    }
+                } else if let Some(h) = hovered {
+                    ctx.set_cursor_icon(match h {
+                        Handle::NW | Handle::SE => egui::CursorIcon::ResizeNwSe,
+                        Handle::NE | Handle::SW => egui::CursorIcon::ResizeNeSw,
+                        Handle::N | Handle::S => egui::CursorIcon::ResizeVertical,
+                        _ => egui::CursorIcon::ResizeHorizontal,
+                    });
+                } else if resp.hovered() {
+                    ctx.set_cursor_icon(egui::CursorIcon::Grab);
+                }
+            }
+
             let cp = ui.painter_at(sel_s);
             for sh in &self.shapes {
                 self.paint_shape(&cp, sh, sel_s.min, s);
@@ -416,6 +541,11 @@ impl App {
             }
             ui.painter().rect_stroke(sel_s, 0.0, Stroke::new(1.0_f32, Color32::from_white_alpha(70)));
         });
+
+        if let Some(new) = pending_sel {
+            self.set_sel(new);
+            ctx.request_repaint();
+        }
 
         // ── floating toolbar ──
         let below = sel_s.max.y + 70.0 < screen.max.y;
@@ -438,6 +568,7 @@ impl App {
                     ui.horizontal(|ui| {
                         ui.spacing_mut().item_spacing = Vec2::splat(3.0);
                         for (t, icon, tip) in [
+                            (Tool::Resize, Icon::Resize, "Resize region (V)"),
                             (Tool::Arrow, Icon::Arrow, "Arrow (A)"),
                             (Tool::Rect, Icon::Rect, "Rectangle (R)"),
                             (Tool::Ellipse, Icon::Ellipse, "Ellipse (E)"),
@@ -448,7 +579,7 @@ impl App {
                             (Tool::Text, Icon::Text, "Text (T)"),
                         ] {
                             if icon_btn(ui, icon, self.tool == t, tip, cur_color).clicked() {
-                                self.tool = t;
+                                self.set_tool(t);
                             }
                         }
                         sep(ui);
@@ -517,7 +648,7 @@ impl App {
                             ("D", "Redact", "Ctrl+S", "Save"),
                             ("C", "Marker", "Esc", "Close"),
                             ("T", "Text", "F1", "Hide this"),
-                            ("1–8", "Color", "", ""),
+                            ("V", "Resize region", "1–8", "Color"),
                         ];
                         for (a, b, c, d) in rows {
                             for (i, t) in [a, b, c, d].iter().enumerate() {

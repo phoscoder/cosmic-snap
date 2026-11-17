@@ -18,7 +18,7 @@ pub(crate) const PANEL: Color32 = Color32::from_rgb(28, 28, 32);
 
 #[derive(Clone, Copy, PartialEq)]
 pub(crate) enum Icon {
-    Arrow, Rect, Ellipse, Pen, Highlight, Redact, Marker, Text, Color, Undo, Copy, Save, Ocr, Backdrop, Close,
+    Resize, Arrow, Rect, Ellipse, Pen, Highlight, Redact, Marker, Text, Color, Undo, Copy, Save, Ocr, Backdrop, Close,
 }
 
 pub(crate) fn draw_icon(p: &egui::Painter, icon: Icon, c: Pos2, col: Color32, cur: Color32) {
@@ -113,6 +113,11 @@ pub(crate) fn draw_icon(p: &egui::Painter, icon: Icon, c: Pos2, col: Color32, cu
         Icon::Backdrop => {
             p.rect_stroke(Rect::from_center_size(c, Vec2::new(18.0, 15.0)), 3.0, st);
             p.rect_stroke(Rect::from_center_size(c, Vec2::new(9.0, 7.0)), 1.5, st);
+        }
+        Icon::Resize => {
+            // crop glyph: two interlocking corner brackets
+            p.add(egui::Shape::line(vec![v(-4.0, -9.0), v(-4.0, 4.0), v(9.0, 4.0)], st));
+            p.add(egui::Shape::line(vec![v(4.0, 9.0), v(4.0, -4.0), v(-9.0, -4.0)], st));
         }
         Icon::Close => {
             p.line_segment([v(-6.0, -6.0), v(6.0, 6.0)], st);

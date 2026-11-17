@@ -16,6 +16,20 @@ pub(crate) enum Shape {
     Text { p: Pos2, s: String, c: Color32, size: f32 },
 }
 
+impl Shape {
+    /// Move the whole shape by `d` (used to keep annotations anchored when the region changes).
+    pub(crate) fn translate(&mut self, d: Vec2) {
+        match self {
+            Shape::Arrow { a, b, .. } | Shape::Rect { a, b, .. } | Shape::Ellipse { a, b, .. } | Shape::Redact { a, b } => {
+                *a += d;
+                *b += d;
+            }
+            Shape::Free { pts, .. } | Shape::Highlight { pts, .. } => pts.iter_mut().for_each(|p| *p += d),
+            Shape::Marker { p, .. } | Shape::Text { p, .. } => *p += d,
+        }
+    }
+}
+
 #[derive(Clone, Copy, PartialEq)]
 pub(crate) enum Tool {
     Arrow,
@@ -26,6 +40,7 @@ pub(crate) enum Tool {
     Redact,
     Marker,
     Text,
+    Resize,
 }
 
 
