@@ -2,6 +2,7 @@
 // Capture the screen, drag-select a region, annotate it in place, copy/save.
 
 mod app;
+mod notify;
 mod raster;
 mod shapes;
 mod system;
@@ -19,6 +20,7 @@ fn main() {
             Some(p) => p,
             None => {
                 eprintln!("cosmic-snap: capture failed");
+                notify::error("Capture failed", "cosmic-screenshot did not return an image");
                 std::process::exit(1);
             }
         },
@@ -27,6 +29,7 @@ fn main() {
         Ok(i) => i.to_rgba8(),
         Err(e) => {
             eprintln!("cosmic-snap: cannot open {}: {e}", path.display());
+            notify::error("Could not open image", &format!("{}: {e}", path.display()));
             std::process::exit(1);
         }
     };

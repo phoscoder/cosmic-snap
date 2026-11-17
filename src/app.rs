@@ -1,5 +1,6 @@
 //! The editor application: region selection phase and in-place annotation phase.
 #![allow(unused_imports)]
+use crate::notify;
 use crate::raster::{contrast, render};
 use crate::shapes::{arrow_segments, ellipse_points, Shape, Tool};
 use crate::system::{png_bytes, save_path, wl_copy};
@@ -250,14 +251,17 @@ impl App {
     }
 
     fn do_copy(&mut self) -> bool {
-        let bytes = png_bytes(&self.output());
-        match wl_copy(&bytes, "image/png") {
+        let out = self.output();
+        let (w, h) = out.dimensions();
+        match wl_copy(&png_bytes(&out), "image/png") {
             Ok(_) => {
                 self.status = "Copied to clipboard".into();
+                notify::info("Copied to clipboard", &format!("{w} × {h} screenshot, ready to paste"));
                 true
             }
             Err(e) => {
                 self.status = format!("Copy failed: {e}");
+                notify::error("Copy failed", &e);
                 false
             }
         }
@@ -266,8 +270,14 @@ impl App {
     fn do_save(&mut self) {
         let p = save_path();
         self.status = match self.output().save(&p) {
-            Ok(_) => format!("Saved {}", p.display()),
-            Err(e) => format!("Save failed: {e}"),
+            Ok(_) => {
+                notify::saved(&p);
+                format!("Saved {}", p.display())
+            }
+            Err(e) => {
+                notify::error("Save failed", &e.to_string());
+                format!("Save failed: {e}")
+            }
         };
     }
 
@@ -275,20 +285,32 @@ impl App {
         let tmp = std::env::temp_dir().join("cosmic-snap-ocr.png");
         if self.base.save(&tmp).is_err() {
             self.status = "OCR: could not write temp file".into();
+            notify::error("Text recognition failed", "Could not write a temporary image");
             return;
         }
         match Command::new("tesseract").arg(&tmp).arg("stdout").output() {
             Ok(o) if o.status.success() => {
                 let text = String::from_utf8_lossy(&o.stdout).trim().to_string();
-                let _ = wl_copy(text.as_bytes(), "text/plain");
-                self.status = format!("OCR: copied {} characters", text.chars().count());
+                if text.is_empty() {
+                    self.status = "OCR: no text found".into();
+                    notify::info("No text found", "Nothing was recognised in the selection");
+                } else {
+                    let _ = wl_copy(text.as_bytes(), "text/plain");
+                    let n = text.chars().count();
+                    self.status = format!("OCR: copied {n} characters");
+                    notify::info("Text copied", &format!("{n} characters from the selection"));
+                }
             }
             Ok(o) => {
                 let err = String::from_utf8_lossy(&o.stderr);
                 let line = err.lines().find(|l| !l.trim().is_empty()).unwrap_or("unknown error");
                 self.status = format!("OCR failed: {line}");
+                notify::error("Text recognition failed", line);
             }
-            Err(_) => self.status = "OCR failed: tesseract not found".into(),
+            Err(_) => {
+                self.status = "OCR failed: tesseract not found".into();
+                notify::error("Text recognition failed", "tesseract is not installed");
+            }
         }
     }
 

@@ -11,6 +11,7 @@ eframe = { version = "0.29", default-features = false, features = ["wayland", "g
 image = { version = "0.25", default-features = false, features = ["png"] }
 chrono = "0.4"
 ab_glyph = "0.2"
+notify-rust = { version = "4.19.0", default-features = false, features = ["z"] }
 
 [profile.release]
 opt-level = 3
