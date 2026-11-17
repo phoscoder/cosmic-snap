@@ -27,6 +27,7 @@ Arrows, boxes, numbered markers, text and highlights, all drawn straight onto th
 - OCR: copy all text in the selection to the clipboard (Tesseract)
 - Optional backdrop: gradient padding with rounded corners, applied on export
 - Copy to the clipboard (closes the app) or save to `~/Pictures`
+- Native COSMIC desktop notifications for copy, save, OCR and errors
 
 ## Requirements
 
