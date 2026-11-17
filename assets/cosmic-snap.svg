@@ -1,21 +1,65 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#6366f1"/>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b1646"/>
+      <stop offset="1" stop-color="#090618"/>
+    </linearGradient>
+    <radialGradient id="neb1" cx="0.2" cy="0.15" r="0.75">
+      <stop offset="0" stop-color="#7c3aed" stop-opacity="0.65"/>
+      <stop offset="1" stop-color="#7c3aed" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="neb2" cx="0.85" cy="0.9" r="0.7">
+      <stop offset="0" stop-color="#ec4899" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#ec4899" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="planet" x1="0.15" y1="0.1" x2="0.85" y2="0.95">
+      <stop offset="0" stop-color="#a5b4fc"/>
+      <stop offset="0.55" stop-color="#8b5cf6"/>
       <stop offset="1" stop-color="#ec4899"/>
     </linearGradient>
+    <clipPath id="tile"><rect x="4" y="4" width="120" height="120" rx="28"/></clipPath>
   </defs>
-  <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#bg)"/>
-  <!-- selection corners -->
-  <g fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M30 50V38a8 8 0 0 1 8-8h12"/>
-    <path d="M78 30h12a8 8 0 0 1 8 8v12"/>
-    <path d="M98 78v12a8 8 0 0 1-8 8H78"/>
-    <path d="M50 98H38a8 8 0 0 1-8-8V78"/>
+
+  <g clip-path="url(#tile)">
+    <rect x="4" y="4" width="120" height="120" fill="url(#sky)"/>
+    <rect x="4" y="4" width="120" height="120" fill="url(#neb1)"/>
+    <rect x="4" y="4" width="120" height="120" fill="url(#neb2)"/>
+    <!-- stars -->
+    <g fill="#ffffff">
+      <circle cx="22" cy="24" r="1.4" opacity="0.9"/>
+      <circle cx="104" cy="22" r="1.1" opacity="0.7"/>
+      <circle cx="16" cy="70" r="1" opacity="0.6"/>
+      <circle cx="112" cy="68" r="1.5" opacity="0.8"/>
+      <circle cx="30" cy="108" r="1.2" opacity="0.7"/>
+      <circle cx="96" cy="108" r="1" opacity="0.6"/>
+      <circle cx="56" cy="14" r="1" opacity="0.6"/>
+      <circle cx="72" cy="116" r="1.3" opacity="0.8"/>
+    </g>
   </g>
-  <!-- annotation arrow -->
-  <g fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M48 80 78 50"/>
-    <path d="M62 50h16v16"/>
+
+  <!-- ringed planet -->
+  <g transform="rotate(-24 64 64)">
+    <ellipse cx="64" cy="64" rx="35" ry="11" fill="none" stroke="#c4b5fd" stroke-opacity="0.55" stroke-width="5"/>
+    <circle cx="64" cy="64" r="21" fill="url(#planet)"/>
+    <path d="M29 64A35 11 0 0 0 99 64" fill="none" stroke="#f5d0fe" stroke-width="5" stroke-linecap="round"/>
+  </g>
+
+  <!-- capture frame -->
+  <g fill="none" stroke="#ffffff" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M26 48V38a10 10 0 0 1 10-10h10"/>
+    <path d="M82 28h10a10 10 0 0 1 10 10v10"/>
+    <path d="M102 80v10a10 10 0 0 1-10 10H82"/>
+    <path d="M46 100H36a10 10 0 0 1-10-10V80"/>
+  </g>
+
+  <!-- the snap: a spark bursting off the corner -->
+  <g transform="translate(96 32)">
+    <path d="M0-13 3.2-3.2 13 0 3.2 3.2 0 13-3.2 3.2-13 0-3.2-3.2Z" fill="#fde68a"/>
+    <path d="M0-7 1.6-1.6 7 0 1.6 1.6 0 7-1.6 1.6-7 0-1.6-1.6Z" fill="#ffffff"/>
+  </g>
+  <g stroke="#fde68a" stroke-width="3" stroke-linecap="round">
+    <path d="M110 18l5-5"/>
+    <path d="M114 32h7"/>
+    <path d="M110 46l5 5"/>
   </g>
 </svg>
