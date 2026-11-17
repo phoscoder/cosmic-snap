@@ -2,5 +2,6 @@
 // Design inspired by Omasnap (MIT, Tobi Lütke).
 mod raster;
 mod shapes;
+mod system;
 
 fn main() {}
