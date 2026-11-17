@@ -7,6 +7,16 @@ Freeze the screen, drag a region, and annotate it in place with a floating toolb
 
 The binary is called `cosmic-snap`.
 
+## Screenshots
+
+Select a region and annotate it in place. The floating toolbar sits right under your selection:
+
+![Floating toolbar under the selected region](docs/screenshots/toolbar.png)
+
+Arrows, boxes, numbered markers, text and highlights, all drawn straight onto the frozen screen:
+
+![An annotated screenshot](docs/screenshots/annotated.png)
+
 ## Features
 
 - Frozen-screen region selector with crosshair guides and a live size readout (click for full screen)
