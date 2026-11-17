@@ -49,9 +49,11 @@ sudo pacman -S wl-clipboard fontconfig tesseract tesseract-data-eng
 ```sh
 git clone https://github.com/phoscoder/cosmic-snap.git
 cd cosmic-snap
-cargo build --release
-install -Dm755 target/release/cosmic-snap ~/.local/bin/cosmic-snap
+./install.sh
 ```
+
+This builds the app and installs the binary, the icon and a launcher entry under `~/.local`
+(set `PREFIX=/usr/local` to install system-wide). Make sure `~/.local/bin` is on your `PATH`.
 
 ## Usage
 
