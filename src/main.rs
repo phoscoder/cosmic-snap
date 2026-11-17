@@ -1,6 +1,5 @@
-// cosnap — a small screenshot annotator for COSMIC (Wayland).
+// cosmic-snap — a small screenshot annotator for COSMIC (Wayland).
 // Capture the screen, drag-select a region, annotate it in place, copy/save.
-// Design inspired by Omasnap (MIT, Tobi Lütke).
 
 mod app;
 mod raster;
@@ -19,7 +18,7 @@ fn main() {
         None => match system::capture() {
             Some(p) => p,
             None => {
-                eprintln!("cosnap: capture failed");
+                eprintln!("cosmic-snap: capture failed");
                 std::process::exit(1);
             }
         },
@@ -27,7 +26,7 @@ fn main() {
     let base = match image::open(&path) {
         Ok(i) => i.to_rgba8(),
         Err(e) => {
-            eprintln!("cosnap: cannot open {}: {e}", path.display());
+            eprintln!("cosmic-snap: cannot open {}: {e}", path.display());
             std::process::exit(1);
         }
     };
@@ -39,13 +38,13 @@ fn main() {
     }
     let font_bytes = system::load_font_bytes();
     let vb = egui::ViewportBuilder::default()
-        .with_app_id("cosnap")
-        .with_title("Cosnap")
+        .with_app_id("cosmic-snap")
+        .with_title("Cosmic Snap")
         .with_fullscreen(true)
         .with_decorations(false);
     let opts = eframe::NativeOptions { viewport: vb, ..Default::default() };
     eframe::run_native(
-        "cosnap",
+        "cosmic-snap",
         opts,
         Box::new(move |cc| Ok(Box::new(app::App::new(cc, base, font_bytes, select)))),
     )

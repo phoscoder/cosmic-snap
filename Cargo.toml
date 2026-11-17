@@ -1,9 +1,9 @@
 [package]
-name = "cosnap"
+name = "cosmic-snap"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-description = "A small screenshot annotator for the COSMIC desktop, in the style of Omasnap"
+description = "A small screenshot annotator for the COSMIC desktop"
 repository = "https://github.com/phoscoder/cosmic-snap"
 
 [dependencies]

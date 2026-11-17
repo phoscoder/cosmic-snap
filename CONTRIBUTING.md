@@ -8,11 +8,11 @@ Thanks for your interest! Bug reports, ideas and pull requests are all welcome.
 git clone https://github.com/phoscoder/cosmic-snap.git
 cd cosmic-snap
 cargo build --release
-./target/release/cosnap
+./target/release/cosmic-snap
 ```
 
 You need a COSMIC (Wayland) session to run the full capture flow, plus `wl-clipboard`.
-`cosnap some-image.png` skips the capture step and is handy for testing the editor.
+`cosmic-snap some-image.png` skips the capture step and is handy for testing the editor.
 
 ## Before opening a pull request
 

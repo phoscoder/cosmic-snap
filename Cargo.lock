@@ -413,7 +413,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "cosnap"
+name = "cosmic-snap"
 version = "0.1.0"
 dependencies = [
  "ab_glyph",

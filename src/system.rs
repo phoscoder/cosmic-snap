@@ -38,7 +38,7 @@ pub(crate) fn save_path() -> PathBuf {
 
 pub(crate) fn capture() -> Option<PathBuf> {
     // Non-interactive, full-desktop frame; the in-app selector crops it.
-    let dir = std::env::temp_dir().join(format!("cosnap-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("cosmic-snap-{}", std::process::id()));
     std::fs::create_dir_all(&dir).ok()?;
     let out = Command::new("cosmic-screenshot")
         .args(["--interactive=false", "--notify=false", "-s"])

@@ -203,7 +203,7 @@ impl App {
     }
 
     fn do_ocr(&mut self) {
-        let tmp = std::env::temp_dir().join("cosnap-ocr.png");
+        let tmp = std::env::temp_dir().join("cosmic-snap-ocr.png");
         if self.base.save(&tmp).is_err() {
             self.status = "OCR: could not write temp file".into();
             return;

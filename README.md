@@ -1,10 +1,9 @@
 # cosmic-snap
 
 A small screenshot annotator for the [COSMIC](https://system76.com/cosmic) desktop, written in Rust.
-Freeze the screen, drag a region, and annotate it in place with a floating toolbar, in the style of
-[Omasnap](https://github.com/tobi/omasnap) (which targets Hyprland and so does not run on COSMIC).
+Freeze the screen, drag a region, and annotate it in place with a floating toolbar.
 
-The binary is called `cosnap`.
+The binary is called `cosmic-snap`.
 
 ## Features
 
@@ -37,15 +36,15 @@ sudo pacman -S wl-clipboard fontconfig tesseract tesseract-data-eng
 git clone https://github.com/phoscoder/cosmic-snap.git
 cd cosmic-snap
 cargo build --release
-install -Dm755 target/release/cosnap ~/.local/bin/cosnap
+install -Dm755 target/release/cosmic-snap ~/.local/bin/cosmic-snap
 ```
 
 ## Usage
 
-Run `cosnap` to capture the screen and select a region, or `cosnap image.png` to annotate an existing image.
+Run `cosmic-snap` to capture the screen and select a region, or `cosmic-snap image.png` to annotate an existing image.
 
 Bind it to a key in **COSMIC Settings → Keyboard → Keyboard Shortcuts → Custom Shortcuts**, using the full
-path to the binary (for example `/home/you/.local/bin/cosnap`) and a combo such as `Super+Shift+S`.
+path to the binary (for example `/home/you/.local/bin/cosmic-snap`) and a combo such as `Super+Shift+S`.
 
 ### Shortcuts
 
@@ -66,11 +65,6 @@ path to the binary (for example `/home/you/.local/bin/cosnap`) and a combo such 
 - Redact draws a solid black box; it does not blur or pixelate.
 - No window-click selection, pins, crop or scroll capture yet.
 - The region selector is a fullscreen window, not a layer-shell surface.
-
-## Credits
-
-Design and interaction model inspired by [Omasnap](https://github.com/tobi/omasnap) by Tobi Lütke (MIT).
-No Omasnap source code is used. This project is an independent implementation.
 
 ## License
 
