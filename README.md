@@ -21,6 +21,7 @@ Arrows, boxes, numbered markers, text and highlights, all drawn straight onto th
 
 - Frozen-screen region selector with crosshair guides and a live size readout (click for full screen)
 - In-place editing: the selection stays bright, the rest of the screen is dimmed
+- Resize tool: drag handles on the selection's edges and corners to grow or crop it, or drag inside to move it; annotations stay put
 - Tools: arrow, rectangle, ellipse, freehand pen, highlighter, redact, numbered markers, text
 - Color palette, custom color picker, mouse-wheel tool size, undo/redo
 - OCR: copy all text in the selection to the clipboard (Tesseract)
@@ -70,7 +71,8 @@ path to the binary (for example `/home/you/.local/bin/cosmic-snap`) and a combo 
 | `D` | Redact | `Ctrl+C` | Copy and close |
 | `C` | Numbered marker | `Ctrl+S` | Save |
 | `T` | Text | `Esc` | Close |
-| `1`–`8` | Color | `F1` | Hide the cheat sheet |
+| `V` | Resize region | `F1` | Hide the cheat sheet |
+| `1`–`8` | Color | | |
 
 ## Limitations
 
