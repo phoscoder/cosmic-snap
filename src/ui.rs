@@ -18,7 +18,7 @@ pub(crate) const PANEL: Color32 = Color32::from_rgb(28, 28, 32);
 
 #[derive(Clone, Copy, PartialEq)]
 pub(crate) enum Icon {
-    Resize, Arrow, Rect, Ellipse, Pen, Highlight, Redact, Marker, Text, Color, Undo, Copy, Save, Ocr, Backdrop, Close,
+    Resize, Arrow, Rect, Ellipse, Pen, Highlight, Redact, Marker, Text, Color, Undo, Redo, Copy, Save, Ocr, Backdrop, Close,
 }
 
 pub(crate) fn draw_icon(p: &egui::Painter, icon: Icon, c: Pos2, col: Color32, cur: Color32) {
@@ -91,6 +91,19 @@ pub(crate) fn draw_icon(p: &egui::Painter, icon: Icon, c: Pos2, col: Color32, cu
             p.add(egui::Shape::line(pts, st));
             p.line_segment([start, start + Vec2::new(0.0, -6.0)], st);
             p.line_segment([start, start + Vec2::new(6.0, 0.0)], st);
+        }
+        Icon::Redo => {
+            // mirror image of the undo arrow
+            let pts: Vec<Pos2> = (0..=10)
+                .map(|i| {
+                    let t = (-150.0_f32 + i as f32 * 21.0).to_radians();
+                    v(0.0, 1.0) + Vec2::new(-t.cos(), t.sin()) * 7.0
+                })
+                .collect();
+            let start = pts[0];
+            p.add(egui::Shape::line(pts, st));
+            p.line_segment([start, start + Vec2::new(0.0, -6.0)], st);
+            p.line_segment([start, start + Vec2::new(-6.0, 0.0)], st);
         }
         Icon::Copy => {
             p.rect_stroke(Rect::from_center_size(v(-2.0, -2.0), Vec2::splat(11.0)), 2.0, st);

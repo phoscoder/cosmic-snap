@@ -590,6 +590,7 @@ impl App {
                         if icon_btn(ui, Icon::Ocr, false, "Copy text from image (O)", cur_color).clicked() { ocr = true; }
                         if icon_btn(ui, Icon::Backdrop, self.backdrop, "Backdrop (B)", cur_color).clicked() { self.backdrop = !self.backdrop; }
                         if icon_btn(ui, Icon::Undo, false, "Undo (Ctrl+Z)", cur_color).clicked() { undo = true; }
+                        if icon_btn(ui, Icon::Redo, false, "Redo (Ctrl+Shift+Z)", cur_color).clicked() { redo = true; }
                         sep(ui);
                         if icon_btn(ui, Icon::Copy, false, "Copy (Ctrl+C)", cur_color).clicked() { copy = true; }
                         if icon_btn(ui, Icon::Save, false, "Save (Ctrl+S)", cur_color).clicked() { save = true; }
