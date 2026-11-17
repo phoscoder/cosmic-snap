@@ -1,4 +1,6 @@
-# cosmic-snap
+# Cosmic Snap
+
+> *Perfectly balanced, as all screenshots should be.* 🫰
 
 A small screenshot annotator for the [COSMIC](https://system76.com/cosmic) desktop, written in Rust.
 Freeze the screen, drag a region, and annotate it in place with a floating toolbar.
